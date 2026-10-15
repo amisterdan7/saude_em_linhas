@@ -1,4 +1,5 @@
-require('dotenv').config();
+// .env.local é gerado pelo `neon deploy` / `neon env pull`
+require('dotenv').config({ path: ['.env.local', '.env'], quiet: true });
 
 const express  = require('express');
 const path     = require('path');

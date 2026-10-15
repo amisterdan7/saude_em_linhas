@@ -1,6 +1,8 @@
 const IA_API_URL = process.env.IA_API_URL;
 const IA_API_KEY = process.env.IA_API_KEY;
 const IA_MODEL   = process.env.IA_MODEL;
+// Modelos de raciocínio gastam tokens pensando antes de responder
+const IA_MAX_TOKENS = Number(process.env.IA_MAX_TOKENS) || 6000;
 
 const SYSTEM_PROMPT = `Você é um assistente de apoio emocional empático e acolhedor.
 Analise o relato e responda SOMENTE com JSON válido, sem markdown, sem texto fora do JSON.
@@ -54,7 +56,7 @@ async function analisarRelato(conteudo) {
         { role: 'system', content: SYSTEM_PROMPT },
         { role: 'user',   content: `Relato:\n${conteudo}` },
       ],
-      max_tokens: 1500,
+      max_tokens: IA_MAX_TOKENS,
     }),
   });
 
@@ -66,7 +68,14 @@ async function analisarRelato(conteudo) {
   const json  = await resposta.json();
 
   // Formato OpenAI/OpenRouter: choices[0].message.content
-  const raw   = json.choices[0].message.content;
+  const escolha = json.choices?.[0];
+  const raw     = escolha?.message?.content;
+  if (!raw) {
+    const motivo = escolha?.finish_reason === 'length'
+      ? `limite de ${IA_MAX_TOKENS} tokens atingido antes da resposta (aumente IA_MAX_TOKENS)`
+      : `resposta vazia (${escolha?.finish_reason || json.error?.message || 'sem detalhes'})`;
+    throw new Error(`IA sem conteúdo: ${motivo}`);
+  }
   const clean = raw.replace(/```json|```/g, '').trim();
   const dados = JSON.parse(clean);
 
