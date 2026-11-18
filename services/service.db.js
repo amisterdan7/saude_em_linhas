@@ -1,8 +1,10 @@
 const { Pool } = require('pg');
+const { ssl } = require('pg/lib/defaults');
 
 // Neon: DATABASE_URL é a URL com pooler; o SSL vem da própria URL (sslmode=require)
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
+  ssl: { rejectUnauthorized: false }
 });
 
 pool.connect()

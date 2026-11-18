@@ -1,6 +1,11 @@
 let express = require("express");
 let router = express.Router();
 
+const aiController = require('../controllers/controller.ai');
+
+router.get('/generate', aiController.gerarPorUrl);
+router.post('/upload-arquivo', aiController.uploadArquivo);
+
 /* GET home page. */
 router.get("/", function (req, res, next) {
 	res.render("index", {
